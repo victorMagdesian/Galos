@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Briga de Galos - Apostas</title>
+  <style>
+    /* RESET GLOBAL */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #1a1a1a, #444);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    /* CABEÇALHO */
+    .header {
+      text-align: center;
+      padding: 10px;
+      background: #222;
+    }
+    .header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+    #balance {
+      font-size: 1rem;
+    }
+    /* CONTAINER FULL SCREEN PARA A BATALHA */
+    #battleContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    /* A ARENA OCUPA A MAIOR PARTE DA TELA */
+    .arena {
+      flex: 1;
+      position: relative;
+      background: #663300; /* tom de terra/barro */
+      border: 2px solid #552200;
+      border-radius: 10px;
+      margin: 10px;
+      overflow: hidden;
+    }
+    /* CONTROLES – FIXOS NA PARTE INFERIOR */
+    .controls {
+      padding: 10px;
+      background: rgba(0,0,0,0.85);
+      text-align: center;
+    }
+    .controls input[type="number"] {
+      width: 100px;
+      padding: 8px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      text-align: center;
+      margin-right: 10px;
+    }
+    .bet-options {
+      margin: 10px 0;
+    }
+    .bet-options label {
+      margin: 0 10px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .bet-options label span.multiplier {
+      background: #888;
+      color: #fff;
+      border-radius: 3px;
+      padding: 2px 5px;
+      margin-left: 5px;
+      font-size: 0.9rem;
+    }
+    #playButton {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #3498db;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #playButton:hover {
+      background: #2980b9;
+    }
+    #resultMessage {
+      text-align: center;
+      padding: 10px;
+      font-size: 1rem;
+    }
+    /* DESENHO DOS GALOS */
+    .rooster {
+      position: absolute;
+      width: 100px;
+      height: 200px;
+      bottom: 20px;
+      transition: transform 0.5s;
+    }
+    /* Posição inicial: Galo Azul à esquerda e Galo Laranja à direita */
+    .rooster.blue {
+      left: 5%;
+    }
+    .rooster.orange {
+      right: 5%;
+    }
+    /* Cabeça com formato circular, comb e bico */
+    .rooster .head {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, currentColor, #000);
+      border-radius: 50%;
+      margin: 0 auto;
+    }
+    /* Comb (cabelo vermelho) */
+    .rooster .head::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 15px;
+      background: red;
+      border-radius: 50% 50% 0 0;
+    }
+    /* Bico */
+    .rooster .head::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 10px solid yellow;
+    }
+    /* Corpo */
+    .rooster .body {
+      width: 100%;
+      height: 80px;
+      background: linear-gradient(135deg, currentColor, #222);
+      margin: 10px 0;
+      border-radius: 10px;
+      position: relative;
+    }
+    /* Asas */
+    .rooster .wing {
+      position: absolute;
+      top: 20px;
+      width: 40px;
+      height: 30px;
+      background: currentColor;
+      border-radius: 50%;
+      transform: rotate(20deg);
+      opacity: 0.8;
+    }
+    .rooster.blue .wing {
+      left: -10px;
+    }
+    .rooster.orange .wing {
+      right: -10px;
+    }
+    /* Pernas */
+    .rooster .legs {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+    }
+    .rooster .leg {
+      width: 8px;
+      height: 30px;
+      background: #fff;
+      border-radius: 2px;
+    }
+    /* Cores específicas */
+    .rooster.blue { color: #3498db; }
+    .rooster.orange { color: #e67e22; }
+    /* ANIMAÇÕES – SIMULAÇÃO DE BRIGA DE GALOS */
+    /* Galo vencedor "bicada": movimento rápido para frente e recuo */
+    @keyframes bluePeck {
+      0% { transform: translateX(0); }
+      30% { transform: translateX(20px); }
+      50% { transform: translateX(0); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes orangePeck {
+      0% { transform: translateX(0); }
+      30% { transform: translateX(-20px); }
+      50% { transform: translateX(0); }
+      100% { transform: translateX(0); }
+    }
+    /* Galo perdedor: derrubada brutal – deslocamento lateral, queda e rotação */
+    @keyframes blueFall {
+      0% { transform: translate(0,0) rotate(0deg); opacity: 1; }
+      100% { transform: translate(-50px, 60px) rotate(-45deg); opacity: 0.5; }
+    }
+    @keyframes orangeFall {
+      0% { transform: translate(0,0) rotate(0deg); opacity: 1; }
+      100% { transform: translate(50px, 60px) rotate(45deg); opacity: 0.5; }
+    }
+    .blue-win { animation: bluePeck 1s forwards; }
+    .orange-win { animation: orangePeck 1s forwards; }
+    .blue-lose { animation: blueFall 1s forwards; }
+    .orange-lose { animation: orangeFall 1s forwards; }
+    /* Em caso de empate, ambos os galos são derrubados */
+    .tie-blue { animation: blueFall 1s forwards; }
+    .tie-orange { animation: orangeFall 1s forwards; }
+    /* RESPONSIVIDADE */
+    @media (max-width: 600px) {
+      .rooster { width: 80px; height: 160px; }
+      .rooster .head { width: 50px; height: 50px; }
+      .rooster .body { height: 65px; }
+      .header h1 { font-size: 1.5rem; }
+      #balance, #resultMessage { font-size: 0.9rem; }
+      .controls input[type="number"] { width: 80px; padding: 6px; font-size: 0.9rem; }
+      .controls button { font-size: 0.9rem; padding: 8px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Cabeçalho com título e saldo -->
+  <div class="header">
+    <h1>Briga de Galos</h1>
+    <div id="balance">Saldo: R$100.00</div>
+  </div>
+  <!-- Container da Batalha -->
+  <div id="battleContainer">
+    <div class="arena" id="arena">
+      <div class="rooster blue" id="blueRooster">
+        <div class="head"></div>
+        <div class="body"></div>
+        <div class="wing"></div>
+        <div class="legs">
+          <div class="leg"></div>
+          <div class="leg"></div>
+        </div>
+      </div>
+      <div class="rooster orange" id="orangeRooster">
+        <div class="head"></div>
+        <div class="body"></div>
+        <div class="wing"></div>
+        <div class="legs">
+          <div class="leg"></div>
+          <div class="leg"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Controles: campo de aposta, opções e botão "Lutar!" -->
+    <div class="controls">
+      <input type="number" id="betAmount" placeholder="Valor" min="1">
+      <div class="bet-options">
+        <label>
+          <input type="radio" name="betOption" value="blue">
+          Galo Azul <span class="multiplier">x2</span>
+        </label>
+        <label>
+          <input type="radio" name="betOption" value="orange">
+          Galo Laranja <span class="multiplier">x2</span>
+        </label>
+        <label>
+          <input type="radio" name="betOption" value="draw">
+          Empate <span class="multiplier">x14</span>
+        </label>
+      </div>
+      <button id="playButton">Lutar!</button>
+    </div>
+  </div>
+  <div id="resultMessage"></div>
+  
+  <script>
+    // Saldo inicial
+    let balance = 100;
+    const balanceDiv = document.getElementById('balance');
+    const betInput = document.getElementById('betAmount');
+    const betOptions = document.getElementsByName('betOption');
+    const playButton = document.getElementById('playButton');
+    const arena = document.getElementById('arena');
+    const blueRooster = document.getElementById('blueRooster');
+    const orangeRooster = document.getElementById('orangeRooster');
+    const resultMessage = document.getElementById('resultMessage');
+    
+    // Atualiza a exibição do saldo
+    function updateBalance() {
+      balanceDiv.textContent = `Saldo: R$${balance.toFixed(2)}`;
+    }
+    
+    // Retorna a opção de aposta selecionada (blue, orange ou draw)
+    function getSelectedBet() {
+      for (let option of betOptions) {
+        if (option.checked) return option.value;
+      }
+      return null;
+    }
+    
+    // Reseta os galos para a posição inicial e remove classes de animação
+    function resetRoosters() {
+      blueRooster.style.transform = "translate(0,0) rotate(0deg)";
+      orangeRooster.style.transform = "translate(0,0) rotate(0deg)";
+      blueRooster.classList.remove("blue-win", "blue-lose", "tie-blue");
+      orangeRooster.classList.remove("orange-win", "orange-lose", "tie-orange");
+    }
+    
+    // Inicia a luta e processa o resultado
+    function startFight() {
+      const bet = parseFloat(betInput.value);
+      const selectedBet = getSelectedBet();
+      if (isNaN(bet) || bet <= 0) {
+        alert("Por favor, insira um valor válido para a aposta.");
+        return;
+      }
+      if (bet > balance) {
+        alert("Saldo insuficiente.");
+        return;
+      }
+      if (!selectedBet) {
+        alert("Selecione uma opção de aposta.");
+        return;
+      }
+      
+      // Deduz a aposta do saldo e atualiza
+      balance -= bet;
+      updateBalance();
+      resetRoosters();
+      
+      // Desabilita os controles enquanto a luta acontece
+      playButton.disabled = true;
+      betInput.disabled = true;
+      for (let option of betOptions) {
+        option.disabled = true;
+      }
+      
+      // Aguarda 1,5 segundos (simulando a aproximação dos galos) e sorteia o resultado
+      setTimeout(() => {
+        // Sorteia o resultado com as probabilidades:
+        // Galo Azul: 47,5%, Galo Laranja: 47,5%, Empate: 5%
+        const r = Math.random();
+        let outcome;
+        if (r < 0.475) outcome = "blue";
+        else if (r < 0.95) outcome = "orange";
+        else outcome = "draw";
+        
+        // Aplica as animações conforme o resultado
+        if (outcome === "blue") {
+          blueRooster.classList.add("blue-win");
+          orangeRooster.classList.add("orange-lose");
+        } else if (outcome === "orange") {
+          orangeRooster.classList.add("orange-win");
+          blueRooster.classList.add("blue-lose");
+        } else {
+          // Empate: ambos os galos são derrubados
+          blueRooster.classList.add("tie-blue");
+          orangeRooster.classList.add("tie-orange");
+        }
+        
+        // Define os multiplicadores: 2x para vitória; 14x para empate
+        let multiplier = (outcome === "draw") ? 14 : 2;
+        const won = (selectedBet === outcome);
+        if (won) {
+          const winnings = bet * multiplier;
+          balance += winnings;
+        }
+        
+        let message = "";
+        if (outcome === "blue") message = "Galo Azul venceu!";
+        else if (outcome === "orange") message = "Galo Laranja venceu!";
+        else message = "Empate!";
+        
+        message += (won) ? ` Você ganhou R$${(bet * multiplier - bet).toFixed(2)}.` : " Você perdeu a aposta.";
+        resultMessage.textContent = message;
+        updateBalance();
+        
+        // Reabilita os controles após 2 segundos (para que as animações se concluam)
+        setTimeout(() => {
+          playButton.disabled = false;
+          betInput.disabled = false;
+          for (let option of betOptions) {
+            option.disabled = false;
+            option.checked = false;
+          }
+          betInput.value = "";
+          resetRoosters();
+        }, 2000);
+      }, 1500);
+    }
+    
+    // Eventos para clique (desktop) e toque (mobile)
+    playButton.addEventListener('click', startFight);
+    playButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      startFight();
+    });
+    
+    updateBalance();
+  </script>
+</body>
+</html>
