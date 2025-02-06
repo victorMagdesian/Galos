@@ -70,19 +70,20 @@
     .bet-options {
       margin: 10px 0;
     }
+    /* Botões de aposta: agora usam uma borda verde para indicar a seleção */
     .bet-options button.bet-btn {
       background: #3498db;
-      border: none;
+      border: 2px solid transparent;
       border-radius: 5px;
       padding: 10px;
       margin: 5px;
       color: #fff;
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: border 0.3s, background 0.3s;
     }
     .bet-options button.bet-btn.active {
-      background: #2980b9;
+      border: 3px solid limegreen;
     }
     .bet-options button.bet-btn:hover {
       background: #2980b9;
@@ -107,11 +108,11 @@
     }
     
     /* GALOS REALISTAS – USANDO SVG */
-    /* Cada galo ficará dentro de um container com a classe .rooster */
+    /* Cada galo ficará dentro de um contêiner com a classe .rooster */
     .rooster {
       position: absolute;
-      width: 100px;
-      height: 200px;
+      width: 150px;
+      height: 300px;
       bottom: 20px;
       transform-style: preserve-3d;
       transition: transform 0.5s;
@@ -124,11 +125,11 @@
     /* Etapa 0: Caminhada até o centro (1.5s) */
     @keyframes walkBlue {
       0% { transform: translateX(0); }
-      100% { transform: translateX(220px); }
+      100% { transform: translateX(270px); }
     }
     @keyframes walkOrange {
       0% { transform: translateX(0); }
-      100% { transform: translateX(-220px); }
+      100% { transform: translateX(-270px); }
     }
     .walk-blue { animation: walkBlue 1.5s forwards; }
     .walk-orange { animation: walkOrange 1.5s forwards; }
@@ -195,7 +196,7 @@
     
     /* RESPONSIVIDADE */
     @media (max-width: 600px) {
-      .rooster { width: 80px; height: 160px; }
+      .rooster { width: 120px; height: 240px; }
       .header h1 { font-size: 1.5rem; }
       #balance, #resultMessage { font-size: 0.9rem; }
       .controls input[type="number"] { width: 80px; padding: 6px; font-size: 0.9rem; }
@@ -318,7 +319,7 @@
       orangeRooster.style.transform = "translate(0,0) rotate(0deg)";
     }
     
-    // Configura os botões de aposta para terem efeito de clique (toggle active)
+    // Configura os botões de aposta para terem efeito de clique (toggle active e borda verde)
     betButtons.forEach(btn => {
       btn.addEventListener('click', function() {
         betButtons.forEach(b => b.classList.remove('active'));
@@ -352,14 +353,15 @@
       betInput.disabled = true;
       betButtons.forEach(btn => btn.disabled = true);
       
-      // Etapa 0: Caminhada até o centro (0 a 1500ms)
+      // Etapa 0: Caminhada até o centro (1.5s)
       blueRooster.classList.add("walk-blue");
       orangeRooster.classList.add("walk-orange");
       
-      // Após 1500ms, inicia o golpe preliminar (Etapa 1)
+      // Após 1.5s, os galos já se encontraram no centro; inicia-se a sequência de golpes
       setTimeout(() => {
         blueRooster.classList.remove("walk-blue");
         orangeRooster.classList.remove("walk-orange");
+        // Etapa 1: Golpe preliminar (1s)
         blueRooster.classList.add("move1-blue");
         orangeRooster.classList.add("move1-orange");
       }, 1500);
@@ -372,7 +374,6 @@
         if (r < 0.475) outcome = "blue";
         else if (r < 0.95) outcome = "orange";
         else outcome = "draw";
-        // Armazena o resultado para uso na etapa final
         window._outcome = outcome;
         if (outcome === "blue") {
           blueRooster.classList.add("winMove-blue");
@@ -401,7 +402,7 @@
         }
       }, 3500);
       
-      // Finalização: atualiza o resultado e o saldo (4500ms)
+      // Finalização: atualização do resultado e do saldo (4500ms)
       setTimeout(() => {
         const multiplier = (window._outcome === "draw") ? 14 : 2;
         const won = (selectedBet === window._outcome);
