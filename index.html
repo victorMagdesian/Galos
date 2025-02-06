@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Briga de Galos 3D - Apostas</title>
+  <title>Briga de Galos Realistas - Apostas</title>
   <style>
     /* RESET E ESTILIZAÇÃO BASE */
     * {
@@ -21,7 +21,6 @@
       display: flex;
       flex-direction: column;
     }
-    /* CABEÇALHO */
     .header {
       text-align: center;
       padding: 10px;
@@ -71,18 +70,22 @@
     .bet-options {
       margin: 10px 0;
     }
-    .bet-options label {
-      margin: 0 10px;
+    .bet-options button.bet-btn {
+      background: #3498db;
+      border: none;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 5px;
+      color: #fff;
       font-size: 1rem;
       cursor: pointer;
+      transition: background 0.3s;
     }
-    .bet-options label span.multiplier {
-      background: #888;
-      color: #fff;
-      border-radius: 3px;
-      padding: 2px 5px;
-      margin-left: 5px;
-      font-size: 0.9rem;
+    .bet-options button.bet-btn.active {
+      background: #2980b9;
+    }
+    .bet-options button.bet-btn:hover {
+      background: #2980b9;
     }
     #playButton {
       padding: 10px 20px;
@@ -102,7 +105,9 @@
       padding: 10px;
       font-size: 1rem;
     }
-    /* DESENHO DOS GALOS (usando classes "rooster" para manter a temática) */
+    
+    /* GALOS REALISTAS – USANDO SVG */
+    /* Cada galo ficará dentro de um container com a classe .rooster */
     .rooster {
       position: absolute;
       width: 100px;
@@ -111,85 +116,24 @@
       transform-style: preserve-3d;
       transition: transform 0.5s;
     }
-    /* Posição inicial: Galo Azul à esquerda e Galo Laranja à direita */
     .rooster.blue { left: 5%; }
     .rooster.orange { right: 5%; }
-    /* Cabeça com formato circular, comb (cabelo vermelho) e bico */
-    .rooster .head {
-      position: relative;
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, currentColor, #000);
-      border-radius: 50%;
-      margin: 0 auto;
-    }
-    /* Comb */
-    .rooster .head::before {
-      content: "";
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 30px;
-      height: 15px;
-      background: red;
-      border-radius: 50% 50% 0 0;
-    }
-    /* Bico */
-    .rooster .head::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-top: 10px solid yellow;
-    }
-    /* Corpo */
-    .rooster .body {
-      width: 100%;
-      height: 80px;
-      background: linear-gradient(135deg, currentColor, #222);
-      margin: 10px 0;
-      border-radius: 10px;
-      position: relative;
-    }
-    /* Asas */
-    .rooster .wing {
-      position: absolute;
-      top: 20px;
-      width: 40px;
-      height: 30px;
-      background: currentColor;
-      border-radius: 50%;
-      transform: rotate(20deg);
-      opacity: 0.8;
-    }
-    .rooster.blue .wing { left: -10px; }
-    .rooster.orange .wing { right: -10px; }
-    /* Pernas */
-    .rooster .legs {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-    }
-    .rooster .leg {
-      width: 8px;
-      height: 30px;
-      background: #fff;
-      border-radius: 2px;
-    }
-    /* Cores específicas */
-    .rooster.blue { color: #3498db; }
-    .rooster.orange { color: #e67e22; }
+    /* OBS.: A cor do galo é definida via inline style (usando currentColor no SVG) */
     
-    /* ANIMAÇÕES 3D – DEFINIÇÃO DOS GOLPES */
-    /* Golpe Preliminar (aproximação/peck) */
+    /* ANIMAÇÕES 3D */
+    /* Etapa 0: Caminhada até o centro (1.5s) */
+    @keyframes walkBlue {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(220px); }
+    }
+    @keyframes walkOrange {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-220px); }
+    }
+    .walk-blue { animation: walkBlue 1.5s forwards; }
+    .walk-orange { animation: walkOrange 1.5s forwards; }
+    
+    /* Etapa 1: Golpe preliminar – ambos se aproximam (1s) */
     @keyframes blueMove1 {
       0% { transform: translateX(0) translateZ(0); }
       50% { transform: translateX(15px) translateZ(30px); }
@@ -203,7 +147,7 @@
     .move1-blue { animation: blueMove1 1s forwards; }
     .move1-orange { animation: orangeMove1 1s forwards; }
     
-    /* Golpe Decisivo – O vencedor executa um giro (spin) enquanto o perdedor é derrubado */
+    /* Etapa 2: Golpe decisivo – o vencedor gira (spin) enquanto o perdedor é derrubado (1s) */
     @keyframes blueSpin {
       0% { transform: rotateY(0deg) translateZ(0); }
       50% { transform: rotateY(360deg) translateZ(40px); }
@@ -228,7 +172,7 @@
     .loseMove-blue { animation: blueKnockDown 1s forwards; }
     .loseMove-orange { animation: orangeKnockDown 1s forwards; }
     
-    /* Golpe Final – O vencedor finaliza com um salto e impacto 3D */
+    /* Etapa 3: Golpe final – o vencedor finaliza com um salto e impacto 3D (1s) */
     @keyframes blueFinal {
       0% { transform: scale(1) translateZ(0); }
       50% { transform: scale(1.3) translateZ(60px) rotateX(15deg); }
@@ -242,7 +186,7 @@
     .finalMove-blue { animation: blueFinal 1s forwards; }
     .finalMove-orange { animation: orangeFinal 1s forwards; }
     
-    /* Em caso de empate, ambos caem */
+    /* Em caso de empate, ambos os galos caem */
     @keyframes drawFall {
       0% { transform: translate(0,0) rotate(0deg); opacity: 1; }
       100% { transform: translateY(50px) rotate(-20deg); opacity: 0.5; }
@@ -252,8 +196,6 @@
     /* RESPONSIVIDADE */
     @media (max-width: 600px) {
       .rooster { width: 80px; height: 160px; }
-      .rooster .head { width: 50px; height: 50px; }
-      .rooster .body { height: 65px; }
       .header h1 { font-size: 1.5rem; }
       #balance, #resultMessage { font-size: 0.9rem; }
       .controls input[type="number"] { width: 80px; padding: 6px; font-size: 0.9rem; }
@@ -264,47 +206,84 @@
 <body>
   <!-- Cabeçalho com título e saldo -->
   <div class="header">
-    <h1>Briga de Galos 3D</h1>
+    <h1>Briga de Galos Realistas - Apostas</h1>
     <div id="balance">Saldo: R$100.00</div>
   </div>
-  <!-- Container da Batalha (full‑screen) -->
+  <!-- Container da Batalha -->
   <div id="battleContainer">
     <div class="arena" id="arena">
-      <div class="rooster blue" id="blueRooster">
-        <div class="head"></div>
-        <div class="body"></div>
-        <div class="wing"></div>
-        <div class="legs">
-          <div class="leg"></div>
-          <div class="leg"></div>
-        </div>
+      <!-- Galo Azul (Realista com SVG) -->
+      <div class="rooster blue" id="blueRooster" style="color: #3498db;">
+        <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="headGradBlue" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#e0a899"/>
+              <stop offset="100%" stop-color="#d18e7e"/>
+            </radialGradient>
+            <linearGradient id="bodyGradBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ff7f50"/>
+              <stop offset="100%" stop-color="#ff6347"/>
+            </linearGradient>
+          </defs>
+          <!-- Cabeça -->
+          <circle cx="150" cy="100" r="50" fill="url(#headGradBlue)" stroke="#8b5e3c" stroke-width="3"/>
+          <!-- Comb -->
+          <path d="M130,60 Q150,20 170,60" fill="red" stroke="darkred" stroke-width="2"/>
+          <!-- Olhos -->
+          <circle cx="135" cy="90" r="7" fill="#fff"/>
+          <circle cx="135" cy="90" r="3" fill="#000"/>
+          <circle cx="165" cy="90" r="7" fill="#fff"/>
+          <circle cx="165" cy="90" r="3" fill="#000"/>
+          <!-- Bico -->
+          <polygon points="160,115 180,110 160,130" fill="yellow" stroke="orange" stroke-width="2"/>
+          <!-- Corpo -->
+          <ellipse cx="150" cy="200" rx="70" ry="50" fill="url(#bodyGradBlue)" stroke="#8b5e3c" stroke-width="3"/>
+          <!-- Asa -->
+          <path class="wing" d="M150,200 C130,180 110,200 130,220" fill="#ff7f50" stroke="#8b5e3c" stroke-width="2"/>
+          <!-- Cauda -->
+          <path d="M220,200 Q250,170 230,150" fill="none" stroke="#ff6347" stroke-width="3"/>
+        </svg>
       </div>
-      <div class="rooster orange" id="orangeRooster">
-        <div class="head"></div>
-        <div class="body"></div>
-        <div class="wing"></div>
-        <div class="legs">
-          <div class="leg"></div>
-          <div class="leg"></div>
-        </div>
+      <!-- Galo Laranja (Realista com SVG) -->
+      <div class="rooster orange" id="orangeRooster" style="color: #e67e22;">
+        <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="headGradOrange" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#f2c2a0"/>
+              <stop offset="100%" stop-color="#e5a389"/>
+            </radialGradient>
+            <linearGradient id="bodyGradOrange" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ffb347"/>
+              <stop offset="100%" stop-color="#ff8c00"/>
+            </linearGradient>
+          </defs>
+          <!-- Cabeça -->
+          <circle cx="150" cy="100" r="50" fill="url(#headGradOrange)" stroke="#8b5e3c" stroke-width="3"/>
+          <!-- Comb -->
+          <path d="M130,60 Q150,20 170,60" fill="red" stroke="darkred" stroke-width="2"/>
+          <!-- Olhos -->
+          <circle cx="135" cy="90" r="7" fill="#fff"/>
+          <circle cx="135" cy="90" r="3" fill="#000"/>
+          <circle cx="165" cy="90" r="7" fill="#fff"/>
+          <circle cx="165" cy="90" r="3" fill="#000"/>
+          <!-- Bico -->
+          <polygon points="160,115 180,110 160,130" fill="yellow" stroke="orange" stroke-width="2"/>
+          <!-- Corpo -->
+          <ellipse cx="150" cy="200" rx="70" ry="50" fill="url(#bodyGradOrange)" stroke="#8b5e3c" stroke-width="3"/>
+          <!-- Asa -->
+          <path class="wing" d="M150,200 C130,180 110,200 130,220" fill="#ffb347" stroke="#8b5e3c" stroke-width="2"/>
+          <!-- Cauda -->
+          <path d="M220,200 Q250,170 230,150" fill="none" stroke="#ff8c00" stroke-width="3"/>
+        </svg>
       </div>
     </div>
-    <!-- Controles de aposta e botão "Lutar!" -->
+    <!-- Controles de Aposta -->
     <div class="controls">
       <input type="number" id="betAmount" placeholder="Valor" min="1">
       <div class="bet-options">
-        <label>
-          <input type="radio" name="betOption" value="blue">
-          Galo Azul <span class="multiplier">x2</span>
-        </label>
-        <label>
-          <input type="radio" name="betOption" value="orange">
-          Galo Laranja <span class="multiplier">x2</span>
-        </label>
-        <label>
-          <input type="radio" name="betOption" value="draw">
-          Empate <span class="multiplier">x14</span>
-        </label>
+        <button class="bet-btn" data-bet="blue">Galo Azul <span class="multiplier">x2</span></button>
+        <button class="bet-btn" data-bet="orange">Galo Laranja <span class="multiplier">x2</span></button>
+        <button class="bet-btn" data-bet="draw">Empate <span class="multiplier">x14</span></button>
       </div>
       <button id="playButton">Lutar!</button>
     </div>
@@ -316,34 +295,37 @@
     let balance = 100;
     const balanceDiv = document.getElementById('balance');
     const betInput = document.getElementById('betAmount');
-    const betOptions = document.getElementsByName('betOption');
+    const betButtons = document.querySelectorAll('.bet-btn');
     const playButton = document.getElementById('playButton');
     const blueRooster = document.getElementById('blueRooster');
     const orangeRooster = document.getElementById('orangeRooster');
     const resultMessage = document.getElementById('resultMessage');
     
-    // Atualiza o saldo exibido
     function updateBalance() {
       balanceDiv.textContent = `Saldo: R$${balance.toFixed(2)}`;
     }
     
-    // Retorna a opção de aposta selecionada
+    // Retorna o valor da aposta selecionada (verificando o botão com classe 'active')
     function getSelectedBet() {
-      for (let option of betOptions) {
-        if (option.checked) return option.value;
-      }
-      return null;
+      const activeBtn = document.querySelector('.bet-btn.active');
+      return activeBtn ? activeBtn.getAttribute('data-bet') : null;
     }
     
-    // Remove todas as classes de animação dos galos
     function resetRoosters() {
-      blueRooster.classList.remove("move1-blue", "winMove-blue", "loseMove-blue", "finalMove-blue", "drawMove");
-      orangeRooster.classList.remove("move1-orange", "winMove-orange", "loseMove-orange", "finalMove-orange", "drawMove");
+      blueRooster.classList.remove("walk-blue", "move1-blue", "winMove-blue", "loseMove-blue", "finalMove-blue", "drawMove");
+      orangeRooster.classList.remove("walk-orange", "move1-orange", "winMove-orange", "loseMove-orange", "finalMove-orange", "drawMove");
       blueRooster.style.transform = "translate(0,0) rotate(0deg)";
       orangeRooster.style.transform = "translate(0,0) rotate(0deg)";
     }
     
-    // Função que inicia a batalha com uma sequência de 3 golpes
+    // Configura os botões de aposta para terem efeito de clique (toggle active)
+    betButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        betButtons.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+    
     function startFight() {
       const bet = parseFloat(betInput.value);
       const selectedBet = getSelectedBet();
@@ -360,100 +342,95 @@
         return;
       }
       
-      // Deduz a aposta do saldo e atualiza
+      // Deduz a aposta e atualiza o saldo
       balance -= bet;
       updateBalance();
       resetRoosters();
       
-      // Desabilita os controles durante a luta
+      // Desabilita os controles enquanto a luta ocorre
       playButton.disabled = true;
       betInput.disabled = true;
-      for (let option of betOptions) { option.disabled = true; }
+      betButtons.forEach(btn => btn.disabled = true);
       
-      // Determina o resultado da batalha com base nas probabilidades:
-      // Galo Azul: 47,5%, Galo Laranja: 47,5%, Empate: 5%
-      let outcome;
-      const r = Math.random();
-      if (r < 0.475) outcome = "blue";
-      else if (r < 0.95) outcome = "orange";
-      else outcome = "draw";
+      // Etapa 0: Caminhada até o centro (0 a 1500ms)
+      blueRooster.classList.add("walk-blue");
+      orangeRooster.classList.add("walk-orange");
       
-      // Sequência de animação em 3 etapas:
-      // Etapa 1 (0 a 1s): Golpe preliminar – ambos os galos se movem
+      // Após 1500ms, inicia o golpe preliminar (Etapa 1)
       setTimeout(() => {
+        blueRooster.classList.remove("walk-blue");
+        orangeRooster.classList.remove("walk-orange");
         blueRooster.classList.add("move1-blue");
         orangeRooster.classList.add("move1-orange");
-      }, 0);
+      }, 1500);
       
-      // Etapa 2 (1s a 2s): Golpe decisivo – animação diferente conforme o resultado
+      // Etapa 2: Golpe decisivo (2500ms)
       setTimeout(() => {
-        // Remove a animação preliminar
-        blueRooster.classList.remove("move1-blue");
-        orangeRooster.classList.remove("move1-orange");
-        
+        blueRooster.classList.remove("move1-blue", "move1-orange");
+        let outcome;
+        const r = Math.random();
+        if (r < 0.475) outcome = "blue";
+        else if (r < 0.95) outcome = "orange";
+        else outcome = "draw";
+        // Armazena o resultado para uso na etapa final
+        window._outcome = outcome;
         if (outcome === "blue") {
           blueRooster.classList.add("winMove-blue");
           orangeRooster.classList.add("loseMove-orange");
         } else if (outcome === "orange") {
           orangeRooster.classList.add("winMove-orange");
           blueRooster.classList.add("loseMove-blue");
-        } else { // empate
+        } else {
           blueRooster.classList.add("drawMove");
           orangeRooster.classList.add("drawMove");
         }
-      }, 1000);
+      }, 2500);
       
-      // Etapa 3 (2s a 3s): Golpe final – reforça o resultado final
+      // Etapa 3: Golpe final (3500ms)
       setTimeout(() => {
-        // Remove a animação da Etapa 2
         blueRooster.classList.remove("winMove-blue", "loseMove-blue", "winMove-orange", "loseMove-orange", "drawMove");
-        
-        if (outcome === "blue") {
+        if (window._outcome === "blue") {
           blueRooster.classList.add("finalMove-blue");
           orangeRooster.classList.add("loseMove-orange");
-        } else if (outcome === "orange") {
+        } else if (window._outcome === "orange") {
           orangeRooster.classList.add("finalMove-orange");
           blueRooster.classList.add("loseMove-blue");
-        } else { // empate
+        } else {
           blueRooster.classList.add("drawMove");
           orangeRooster.classList.add("drawMove");
         }
-      }, 2000);
+      }, 3500);
       
-      // Finaliza a batalha após 3 segundos
+      // Finalização: atualiza o resultado e o saldo (4500ms)
       setTimeout(() => {
-        // Define o multiplicador: 2x para vitória, 14x para empate
-        const multiplier = (outcome === "draw") ? 14 : 2;
-        const won = (selectedBet === outcome);
+        const multiplier = (window._outcome === "draw") ? 14 : 2;
+        const won = (selectedBet === window._outcome);
         if (won) {
           const winnings = bet * multiplier;
           balance += winnings;
         }
-        
         let message = "";
-        if (outcome === "blue") message = "Galo Azul venceu!";
-        else if (outcome === "orange") message = "Galo Laranja venceu!";
+        if (window._outcome === "blue") message = "Galo Azul venceu!";
+        else if (window._outcome === "orange") message = "Galo Laranja venceu!";
         else message = "Empate!";
-        
         message += (won) ? ` Você ganhou R$${(bet * multiplier - bet).toFixed(2)}.` : " Você perdeu a aposta.";
         resultMessage.textContent = message;
         updateBalance();
         
-        // Reabilita os controles e reseta os galos após 1,5s extras (total 4,5s)
+        // Reabilita os controles após 1500ms extras (total 6000ms)
         setTimeout(() => {
           playButton.disabled = false;
           betInput.disabled = false;
-          for (let option of betOptions) {
-            option.disabled = false;
-            option.checked = false;
-          }
+          betButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('active');
+          });
           betInput.value = "";
           resetRoosters();
         }, 1500);
-      }, 3000);
+      }, 4500);
     }
     
-    // Eventos para clique (desktop) e toque (mobile)
     playButton.addEventListener('click', startFight);
     playButton.addEventListener('touchend', (e) => {
       e.preventDefault();
